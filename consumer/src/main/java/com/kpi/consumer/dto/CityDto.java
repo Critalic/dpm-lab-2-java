@@ -1,6 +1,6 @@
 package com.kpi.consumer.dto;
 
-public record CityDataDto (
+public record CityDto(
         String city,
         String state,
         Double lon,

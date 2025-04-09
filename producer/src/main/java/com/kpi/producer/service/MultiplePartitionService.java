@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -25,7 +24,8 @@ public class MultiplePartitionService extends KafkaProducerService {
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public MultiplePartitionService(ObjectMapper objectMapper, KafkaProperties kafkaProperties, KafkaTemplate<String, String> kafkaTemplate) {
+    public MultiplePartitionService(ObjectMapper objectMapper, KafkaProperties kafkaProperties,
+                                    KafkaTemplate<String, String> kafkaTemplate) {
         this.objectMapper = objectMapper;
         this.kafkaProperties = kafkaProperties;
         this.kafkaTemplate = kafkaTemplate;
@@ -43,10 +43,7 @@ public class MultiplePartitionService extends KafkaProducerService {
                     null, key, payload);
             CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(record);
             future.whenComplete((result, ex) -> {
-                if (ex == null) {
-//                    log.info("Sent message to partition=[{}]",
-//                            result.getRecordMetadata().partition());
-                } else {
+                if (ex != null) {
                     log.error("Unable to send message=[{}] due to: {}", payload, ex.getMessage());
                 }
             });

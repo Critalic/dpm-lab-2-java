@@ -23,7 +23,8 @@ public class SinglePartitionService extends KafkaProducerService {
     private final KafkaProperties kafkaProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public SinglePartitionService(ObjectMapper objectMapper, KafkaProperties kafkaProperties, KafkaTemplate<String, String> kafkaTemplate) {
+    public SinglePartitionService(ObjectMapper objectMapper, KafkaProperties kafkaProperties,
+                                  KafkaTemplate<String, String> kafkaTemplate) {
         this.objectMapper = objectMapper;
         this.kafkaProperties = kafkaProperties;
         this.kafkaTemplate = kafkaTemplate;
@@ -48,6 +49,5 @@ public class SinglePartitionService extends KafkaProducerService {
         }
         Instant end = Instant.now();
         log.info("Finished sending {} messages, time {}", messageCount, Duration.between(start, end).toMillis());
-        log.info("Finished sending {} messages", messageCount);
     }
 }

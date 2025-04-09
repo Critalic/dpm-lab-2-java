@@ -26,7 +26,7 @@ public class ProducerApplication {
     @Scheduled(initialDelay = 1000, fixedDelay=Long.MAX_VALUE)
     private void sendMessage() {
         try {
-            singlePartitionService.send(2000);
+            singlePartitionService.send(300000);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

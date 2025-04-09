@@ -59,7 +59,7 @@ public class ProducerConfiguration {
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         return new DefaultKafkaProducerFactory<>(basicProducerConfigs());
-        // return new DefaultKafkaProducerFactory<>(highThroughputProducerConfigs());
+//         return new DefaultKafkaProducerFactory<>(highThroughputProducerConfigs());
         // return new DefaultKafkaProducerFactory<>(lowLatencyProducerConfigs());
     }
 

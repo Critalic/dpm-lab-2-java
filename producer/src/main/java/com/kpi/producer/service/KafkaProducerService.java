@@ -3,15 +3,12 @@ package com.kpi.producer.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kpi.producer.dto.CityDataDto;
 import com.kpi.producer.dto.KafkaMessage;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class KafkaProducerService {
-    final AtomicInteger messageCounter = new AtomicInteger(0);
     private final Random random = new Random();
     // Sample data for random generation
     private final List<String> cities = Arrays.asList(
@@ -40,15 +37,15 @@ public abstract class KafkaProducerService {
         return new CityDataDto(
                 city,
                 state,
-                -180.0 + random.nextDouble() * 360.0, // longitude
-                -90.0 + random.nextDouble() * 180.0,  // latitude
+                -180.0 + random.nextDouble() * 360.0,
+                -90.0 + random.nextDouble() * 180.0,
                 koppen,
-                random.nextDouble() * 5000.0,         // elevation
-                random.nextDouble() * 1000.0,         // distance_to_coast
-                random.nextDouble() * 30.0,           // wind
-                random.nextDouble() * 200.0,          // elevation_change_four
-                random.nextDouble() * 500.0,          // elevation_change_eight
-                random.nextDouble() * 2000.0          // avg_annual_precip
+                random.nextDouble() * 5000.0,
+                random.nextDouble() * 1000.0,
+                random.nextDouble() * 30.0,
+                random.nextDouble() * 200.0,
+                random.nextDouble() * 500.0,
+                random.nextDouble() * 2000.0
         );
     }
 }
