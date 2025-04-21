@@ -35,7 +35,7 @@ public class ConsumerConfiguration {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-//        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
+//        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10"); //for batching
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -44,8 +44,8 @@ public class ConsumerConfiguration {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(1);
-        factory.setBatchListener(false);
+        factory.setConcurrency(1); //set the number of consumers
+        factory.setBatchListener(false); // enable batching
         return factory;
     }
 }

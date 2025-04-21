@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
+//Lab 2
 @Slf4j
 @Service
 public class SinglePartitionConsumer {

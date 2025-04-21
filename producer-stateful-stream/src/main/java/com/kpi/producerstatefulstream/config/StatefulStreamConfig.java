@@ -1,13 +1,14 @@
-package com.kpi.producerstream.configuration;
+package com.kpi.producerstatefulstream.config;
 
-import com.kpi.producerstream.dto.KafkaMessageForecast;
+import com.kpi.producerstatefulstream.dto.KafkaMessageForecast;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Branched;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Materialized;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,25 +31,19 @@ import static org.apache.kafka.streams.StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_C
 @Configuration
 @EnableKafka
 @EnableKafkaStreams
-public class StreamProducerConfig {
+public class StatefulStreamConfig {
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
     @Value(value = "${producer.stream.kafka.topic}")
     private String topic;
 
-    private static final String OUTPUT_TOPIC_12_HOURS = "ny-weather-forecast-12h";
-    private static final String OUTPUT_TOPIC_24_HOURS = "ny-weather-forecast-24h";
-    private static final String OUTPUT_TOPIC_36_HOURS = "ny-weather-forecast-36h";
-    private static final String OUTPUT_TOPIC_48_HOURS = "ny-weather-forecast-48h";
-    private static final String OUTPUT_TOPIC_UNKNOWN = "ny-weather-forecast-unknown";
-
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     KafkaStreamsConfiguration kStreamsConfig() {
         Map<String, Object> props = new HashMap<>();
-        props.put(APPLICATION_ID_CONFIG, "streams-app");
+        props.put(APPLICATION_ID_CONFIG, "stateful-streams-app");
         props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         props.put(DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        props.put(DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        props.put(DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName());
 
         return new KafkaStreamsConfiguration(props);
     }
@@ -60,18 +55,25 @@ public class StreamProducerConfig {
                 Consumed.with(Serdes.String(), forecastDtoSerde)
         );
 
-        weatherStream
-                .filter((key, value) -> "NY".equalsIgnoreCase(value.payload().forecastDto().state()))
-                .split()
-                .branch((key, value) -> value.payload().forecastDto().forecastHoursBefore() == 12,
-                        Branched.withConsumer(ks -> ks.to(OUTPUT_TOPIC_12_HOURS)))
-                .branch((key, value) -> value.payload().forecastDto().forecastHoursBefore() == 24,
-                        Branched.withConsumer(ks -> ks.to(OUTPUT_TOPIC_24_HOURS)))
-                .branch((key, value) -> value.payload().forecastDto().forecastHoursBefore() == 36,
-                        Branched.withConsumer(ks -> ks.to(OUTPUT_TOPIC_36_HOURS)))
-                .branch((key, value) -> value.payload().forecastDto().forecastHoursBefore() == 48,
-                        Branched.withConsumer(ks -> ks.to(OUTPUT_TOPIC_48_HOURS)))
-                .defaultBranch(Branched.withConsumer(ks -> ks.to(OUTPUT_TOPIC_UNKNOWN)));
+        // Count forecastHoursBefore == 12
+        weatherStream.filter((key, value) -> value.getForecastDto().forecastHoursBefore() == 12)
+                .map((key, value) -> new KeyValue<>("count", 1)) // re-key everything with a constant key
+                .groupByKey()
+                .count(Materialized.with(Serdes.String(), Serdes.Long()))
+                .toStream()
+                .foreach((key, count) -> System.out.println("Count with forecastHoursBefore == 12: " + count));
+
+
+        // Find max observedTemp for state == "NY"
+        weatherStream.filter((key, value) -> "NY".equals(value.getForecastDto().state()) &&
+                        value.getForecastDto().observedTemp() != null)
+                .map((key, value) -> new KeyValue<>("NY", value.getForecastDto().observedTemp())) // use state as key
+                .groupByKey()
+                .reduce(Integer::max, Materialized.with(Serdes.String(), Serdes.Integer()))
+                .toStream()
+                .foreach((key, maxTemp) -> System.out.println("Max observedTemp in NY: " + maxTemp));
+
+
         return weatherStream;
     }
 

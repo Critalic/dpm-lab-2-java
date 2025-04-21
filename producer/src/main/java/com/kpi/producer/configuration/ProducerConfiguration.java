@@ -2,7 +2,6 @@ package com.kpi.producer.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +23,6 @@ public class ProducerConfiguration {
         return new ObjectMapper();
     }
 
-    // Configuration 1: Basic configuration
     @Bean
     public Map<String, Object> basicProducerConfigs() {
         Map<String, Object> props = new HashMap<>();
@@ -34,7 +32,6 @@ public class ProducerConfiguration {
         return props;
     }
 
-    // Configuration 2: With high throughput settings
     @Bean
     public Map<String, Object> highThroughputProducerConfigs() {
         Map<String, Object> props = basicProducerConfigs();
@@ -45,22 +42,11 @@ public class ProducerConfiguration {
         return props;
     }
 
-    // Configuration 3: For low latency scenarios
-    @Bean
-    public Map<String, Object> lowLatencyProducerConfigs() {
-        Map<String, Object> props = basicProducerConfigs();
-        props.put(ProducerConfig.LINGER_MS_CONFIG, 0); // No delay
-        props.put(ProducerConfig.ACKS_CONFIG, "1"); // Only wait for leader acknowledgement
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384); // Smaller batches
-        return props;
-    }
-
     // Default ProducerFactory with basic configuration
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         return new DefaultKafkaProducerFactory<>(basicProducerConfigs());
 //         return new DefaultKafkaProducerFactory<>(highThroughputProducerConfigs());
-        // return new DefaultKafkaProducerFactory<>(lowLatencyProducerConfigs());
     }
 
     @Bean
